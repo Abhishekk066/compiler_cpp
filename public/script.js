@@ -1,5 +1,5 @@
 async function init() {
-  let socket = new WebSocket(`ws://${window.location.host}`);
+  let socket = new WebSocket(`wss://${window.location.host}`);
   const editorContainer = document.getElementById('editorContainer');
   const outputContainer = document.getElementById('outputContainer');
   const toggleViewBtn = document.getElementById('toggle-view');
