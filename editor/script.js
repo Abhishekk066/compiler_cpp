@@ -37,7 +37,6 @@ async function init() {
     }
 
     const data = await res.json();
-    console.log(data);
 
     document.getElementById('code').textContent = data.code;
 
