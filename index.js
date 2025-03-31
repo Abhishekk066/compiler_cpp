@@ -22,14 +22,13 @@ const wss = new WebSocketServer({ server });
 var currentCode;
 var filename;
 
-const mainDomain = 'https://compiler-cpp.vercel.app';
-const requestedDomain = 'https://file-manager-cpp.vercel.app';
+const mainDomain = 'https://compiler-cpp06.onrender.com';
+const requestedDomain = 'https://file-manager-cpp06.onrender.com';
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors({ origin: requestedDomain }));
-app.use(cors({ origin: requestedDomain2 }));
 
 const codeCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
 
