@@ -290,6 +290,14 @@ async function init() {
   toggleViewBtn.addEventListener('click', () => {
     editorView++;
     if (editorView === 1) {
+      editorContainer.style.display = 'block';
+      editorContainer.classList.add('editor-fullscreen');
+      outputContainer.style.display = 'none';
+      toggleViewBtn.innerHTML =
+        '<i class="fas fa-code"></i><span class="hidden-mobile">Switch</span>';
+      editorContainer.style.width = '100%';
+      outputContainer.style.width = '0%';
+    } else if (editorView === 2) {
       // Show output, hide editor
       editorContainer.style.display = 'none';
       outputContainer.style.display = 'block';
@@ -298,15 +306,6 @@ async function init() {
         '<i class="fas fa-terminal"></i><span class="hidden-mobile">Switch</span>';
       editorContainer.style.width = '0%';
       outputContainer.style.width = '100%';
-    } else if (editorView === 2) {
-      // Show editor, hide output
-      editorContainer.style.display = 'block';
-      editorContainer.classList.add('editor-fullscreen');
-      outputContainer.style.display = 'none';
-      toggleViewBtn.innerHTML =
-        '<i class="fas fa-code"></i><span class="hidden-mobile">Switch</span>';
-      editorContainer.style.width = '100%';
-      outputContainer.style.width = '0%';
     } else {
       originalWidthHeight();
     }
