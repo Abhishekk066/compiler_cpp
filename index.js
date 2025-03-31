@@ -87,7 +87,7 @@ async function sendUrl(req, res) {
       express.static(path.join(__dirname, 'node_modules/codemirror')),
     );
     app.use(route, express.static(path.join(__dirname, 'editor')));
-    const url = `https://compiler-cpp-production.up.railway.app/${route}`;
+    const url = `https://compiler-cpp-production.up.railway.app${route}`;
     res.status(200).json({ message: true, url });
   } catch (error) {
     console.error('Fetch error:', error);
