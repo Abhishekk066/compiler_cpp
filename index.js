@@ -23,12 +23,14 @@ var currentCode;
 var filename;
 
 const mainDomain = 'https://compiler-cpp06.onrender.com';
-const requestedDomain = 'https://file-manager-cpp06.onrender.com';
+const requestedDomain = 'https://file-manager-cpp.onrender.com';
+const requestedDomain2 = 'https://file-manager-cpp06.onrender.com';
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors({ origin: requestedDomain }));
+app.use(cors({ origin: requestedDomain2 }));
 
 const codeCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
 
@@ -70,7 +72,7 @@ app.post('/generate-qrcode', async (req, res) => {
 });
 
 async function sendUrl(req, res) {
-  const fetchUrl = `${requestedDomain}/send-code`;
+  const fetchUrl = `${requestedDomain2}/send-code`;
   try {
     const response = await fetch(fetchUrl, { method: 'POST' });
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
