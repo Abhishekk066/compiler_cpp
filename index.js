@@ -22,9 +22,8 @@ const wss = new WebSocketServer({ server });
 var currentCode;
 var filename;
 
-const mainDomain = 'https://compiler-cpp06.onrender.com';
-const requestedDomain = 'https://file-manager-cpp.onrender.com';
-const requestedDomain2 = 'https://file-manager-cpp06.onrender.com';
+const mainDomain = 'https://compiler-cpp.vercel.app';
+const requestedDomain = 'https://file-manager-cpp.vercel.app';
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
@@ -72,7 +71,7 @@ app.post('/generate-qrcode', async (req, res) => {
 });
 
 async function sendUrl(req, res) {
-  const fetchUrl = `${requestedDomain2}/send-code`;
+  const fetchUrl = `${requestedDomain}/send-code`;
   try {
     const response = await fetch(fetchUrl, { method: 'POST' });
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
