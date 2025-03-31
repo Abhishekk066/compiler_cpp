@@ -22,13 +22,12 @@ const wss = new WebSocketServer({ server });
 var currentCode;
 var filename;
 
-const mainDomain = 'https://compiler-cpp06.onrender.com';
 const requestedDomain = 'https://file-manager-cpp06.onrender.com';
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors({ origin: requestedDomain }));
+app.use(cors());
 
 const codeCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
 
@@ -40,7 +39,8 @@ app.use(
 app.post('/generate-url', async (req, res) => {
   const { code, filename } = req.body;
   if (!code) return res.status(400).json({ error: 'Code is required' });
-
+  
+  const host = req.get('host');
   const data = { message: true, type: 'default', filename, code };
   const codeId = crypto.randomUUID();
   codeCache.set(codeId, data);
@@ -50,7 +50,7 @@ app.post('/generate-url', async (req, res) => {
     express.static(path.join(__dirname, 'node_modules/codemirror')),
   );
   app.use(route, express.static(path.join(__dirname, 'editor')));
-  const url = `${mainDomain}${route}`;
+  const url = `${host}${route}`;
   res.status(200).json({ message: true, url });
 });
 
@@ -70,6 +70,7 @@ app.post('/generate-qrcode', async (req, res) => {
 });
 
 async function sendUrl(req, res) {
+  const host = req.get('host');
   const fetchUrl = `${requestedDomain}/send-code`;
   try {
     const response = await fetch(fetchUrl, { method: 'POST' });
@@ -87,7 +88,7 @@ async function sendUrl(req, res) {
       express.static(path.join(__dirname, 'node_modules/codemirror')),
     );
     app.use(route, express.static(path.join(__dirname, 'editor')));
-    const url = `${mainDomain}${route}`;
+    const url = `${host}${route}`;
     res.status(200).json({ message: true, url });
   } catch (error) {
     console.error('Fetch error:', error);
