@@ -128,13 +128,9 @@ app.post('/code/share/:id', (req, res) => {
 // 🔹 API to Fetch Default Code
 app.post('/default-code', async (req, res) => {
   const host = req.get('host');
-
+  console.log('Host:', host);
   if (host === "compiler-cpp06.onrender.com") {
-    return res.status(200).send(`
-      <script>
-        window.location.replace('https://compiler-cpp.onrender.com');
-      </script>
-    `);
+    return res.redirect(302, 'https://compiler-cpp.onrender.com');
   }
   
   try {
