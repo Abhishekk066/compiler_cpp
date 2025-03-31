@@ -42,6 +42,7 @@ async function init() {
 
     const fileName = data.filename.toString().split('/').pop();
     fileNameEditor.textContent = fileName;
+    document.querySelector("title").textContent = fileName;
   } catch (e) {
     console.error(e);
   }
