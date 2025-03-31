@@ -127,6 +127,16 @@ app.post('/code/share/:id', (req, res) => {
 
 // 🔹 API to Fetch Default Code
 app.post('/default-code', async (req, res) => {
+  const host = req.get('host');
+
+  if (host === "compiler-cpp06.onrender.com") {
+    return res.status(404).send(`
+      <script>
+        window.location.replace('https://compiler-cpp.onrender.com');
+      </script>
+    `);
+  }
+  
   try {
     res.json({
       type: 'default',
@@ -141,9 +151,7 @@ int main() {
     });
   } catch (error) {
     console.error('Fetch error:', error);
-    res
-      .status(500)
-      .json({ error: 'Failed to fetch code from external service' });
+    res.status(500).json({ error: 'Failed to fetch code from external service' });
   }
 });
 
