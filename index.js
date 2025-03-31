@@ -87,10 +87,8 @@ async function sendUrl(req, res) {
       express.static(path.join(__dirname, 'node_modules/codemirror')),
     );
     app.use(route, express.static(path.join(__dirname, 'editor')));
-    if (host === "compiler-cpp06.onrender.com" || host === "compiler-cpp.onrender.com") {
-      const url = `https://${host}${route}`;
-      res.status(200).json({ message: true, url });
-    }
+    const url = `https://https://compiler-cpp06.onrender.com/${route}`;
+    res.status(200).json({ message: true, url });
   } catch (error) {
     console.error('Fetch error:', error);
     return res
