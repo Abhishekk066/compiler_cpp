@@ -106,7 +106,7 @@ app.post('/code/c/:id', (req, res) => {
   if (!code) {
     return res
       .status(404)
-      .send('<script>window.location.replace(' / ');</script>');
+      .send('<script>window.location.replace('/');</script>');
   }
 
   res.send(code);
@@ -130,7 +130,7 @@ app.post('/default-code', async (req, res) => {
   const host = req.get('host');
 
   if (host === "compiler-cpp06.onrender.com") {
-    return res.status(404).send(`
+    return res.status(200).send(`
       <script>
         window.location.replace('https://compiler-cpp.onrender.com');
       </script>
