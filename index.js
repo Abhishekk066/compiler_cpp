@@ -70,7 +70,6 @@ app.post('/generate-qrcode', async (req, res) => {
 });
 
 async function sendUrl(req, res) {
-  const host = req.get('host');
   const fetchUrl = `${requestedDomain}/send-code`;
   try {
     const response = await fetch(fetchUrl, { method: 'POST' });
@@ -88,9 +87,10 @@ async function sendUrl(req, res) {
       express.static(path.join(__dirname, 'node_modules/codemirror')),
     );
     app.use(route, express.static(path.join(__dirname, 'editor')));
-    const url = `${host}${route}`;
-    const url2 = url.replace(/file-manager-cpp\.onrender\.com\//, '');
-    res.status(200).json({ message: true, url2 });
+    if (host === "compiler-cpp06.onrender.com" || host === "compiler-cpp.onrender.com") {
+      const url = `https://${host}${route}`;
+      res.status(200).json({ message: true, url });
+    }
   } catch (error) {
     console.error('Fetch error:', error);
     return res
