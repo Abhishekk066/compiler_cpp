@@ -193,7 +193,7 @@ nav {
 }
 
 .CodeMirror-scrollbar-filler {
-  display: none;
+  display: none !important;
 }
 
 #output {
