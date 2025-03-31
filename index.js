@@ -89,7 +89,7 @@ async function sendUrl(req, res) {
     );
     app.use(route, express.static(path.join(__dirname, 'editor')));
     const url = `${host}${route}`;
-    const url2 = url.replace(/^https?:\/\/file-manager-cpp\.onrender\.com\//, '');
+    const url2 = url.replace(/file-manager-cpp\.onrender\.com\//, '');
     res.status(200).json({ message: true, url2 });
   } catch (error) {
     console.error('Fetch error:', error);
