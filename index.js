@@ -22,7 +22,7 @@ const wss = new WebSocketServer({ server });
 var currentCode;
 var filename;
 
-const mainDomain = 'https://compiler-cpp06.onrender.com';
+const mainDomain = 'https://compiler-cpp.onrender.com';
 const requestedDomain = 'https://file-manager-cpp06.onrender.com';
 
 app.use(express.static(path.join(__dirname, 'public')));
