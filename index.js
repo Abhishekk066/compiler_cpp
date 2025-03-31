@@ -22,7 +22,7 @@ const wss = new WebSocketServer({ server });
 var currentCode;
 var filename;
 
-const requestedDomain = 'https://file-manager-cpp06.onrender.com';
+const requestedDomain = 'https://file-manager-cpp-production.up.railway.app';
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
