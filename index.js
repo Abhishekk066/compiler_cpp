@@ -22,6 +22,7 @@ const wss = new WebSocketServer({ server });
 var currentCode;
 var filename;
 
+const mainDomain = 'https://compiler-cpp-production.up.railway.app';
 const requestedDomain = 'https://file-manager-cpp-production.up.railway.app';
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -87,7 +88,7 @@ async function sendUrl(req, res) {
       express.static(path.join(__dirname, 'node_modules/codemirror')),
     );
     app.use(route, express.static(path.join(__dirname, 'editor')));
-    const url = `https://compiler-cpp-production.up.railway.app${route}`;
+    const url = `${mainDomain}${route}`;
     res.status(200).json({ message: true, url });
   } catch (error) {
     console.error('Fetch error:', error);
