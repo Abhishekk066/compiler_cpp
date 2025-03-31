@@ -192,6 +192,10 @@ nav {
   background: transparent;
 }
 
+.CodeMirror-scrollbar-filler {
+  display: none;
+}
+
 #output {
   height: 100%;
   background: var(--output-bg);
