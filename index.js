@@ -22,7 +22,7 @@ const wss = new WebSocketServer({ server });
 var currentCode;
 var filename;
 
-const mainDomain = 'https://compiler-cpp.onrender.com';
+const mainDomain = 'https://compiler-cpp06.onrender.com';
 const requestedDomain = 'https://file-manager-cpp06.onrender.com';
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -127,12 +127,6 @@ app.post('/code/share/:id', (req, res) => {
 
 // 🔹 API to Fetch Default Code
 app.post('/default-code', async (req, res) => {
-  const host = req.get('host');
-  console.log('Host:', host);
-  if (host === "compiler-cpp06.onrender.com") {
-    return res.redirect(302, 'https://compiler-cpp.onrender.com');
-  }
-  
   try {
     res.json({
       type: 'default',
