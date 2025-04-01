@@ -375,6 +375,7 @@ async function init() {
     'neat',
     'paraiso-light',
   ];
+  
   const darkThemes = [
     'dracula',
     'monokai',
@@ -383,70 +384,22 @@ async function init() {
     'gruvbox-dark',
     'panda-syntax',
   ];
-
+  
   const themeSelector = document.querySelector('select');
   const themeToggle = document.querySelector('.mode');
   const savedMode = sessionStorage.getItem('themeMode');
   const savedTheme = sessionStorage.getItem('selectedTheme');
-
-  let themeFlag = savedMode === 'light';
-
-  if (themeFlag) {
-    updateThemeOptions(lightThemes);
-    document.documentElement.classList.add('day');
-    themeToggle.innerHTML =
-      '<i class="fas fa-moon"></i><span class="hidden-mobile">Night</span>';
-  } else {
-    updateThemeOptions(darkThemes);
-    document.documentElement.classList.remove('day');
-    themeToggle.innerHTML =
-      '<i class="fas fa-sun"></i><span class="hidden-mobile">Day</span>';
-  }
-
-  const defaultTheme = savedTheme || (themeFlag ? 'default' : 'dracula');
-  themeSelector.value = defaultTheme;
-  loadTheme(defaultTheme);
-
-  function loadTheme(theme) {
-    if (theme === 'default') {
-      editor.setOption('theme', 'default');
-    } else {
-      const existingLink = document.getElementById('theme-stylesheet');
-      if (existingLink) existingLink.remove();
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.id = 'theme-stylesheet';
-      link.href = `codemirror/theme/${theme.replace(/\s+/g, '-')}.css`;
-      document.head.appendChild(link);
-
-      editor.setOption('theme', theme);
-    }
-    sessionStorage.setItem('selectedTheme', theme);
-  }
-
-  themeSelector.addEventListener('change', function () {
-    loadTheme(this.value);
-  });
-
   const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
   
-  function toggleTheme() {
-    themeFlag = !themeFlag;
-    themeToggle.innerHTML = themeFlag
-      ? '<i class="fas fa-moon"></i><span class="hidden-mobile">Night</span>'
-      : '<i class="fas fa-sun"></i><span class="hidden-mobile">Day</span>';
+  let themeFlag = savedMode ? savedMode === 'light' : !prefersDarkScheme.matches;
   
-    document.documentElement.classList.toggle('day', themeFlag);
-    sessionStorage.setItem('themeMode', themeFlag ? 'light' : 'dark');
-    updateThemeOptions(themeFlag ? lightThemes : darkThemes);
+  prefersDarkScheme.addEventListener('change', (e) => {
+    if (!savedMode) {
+      themeFlag = e.matches;
+      applyThemeSettings();
+    }
+  });
   
-    themeSelector.value = themeFlag ? 'default' : 'dracula';
-    loadTheme(themeSelector.value);
-    showToast(`Switched to ${themeFlag ? 'light' : 'dark'} mode!`);
-  }
-  
-  themeToggle.addEventListener('click', toggleTheme);
-
   function updateThemeOptions(themes) {
     themeSelector.innerHTML = '';
     themes.forEach((theme) => {
@@ -456,6 +409,48 @@ async function init() {
       themeSelector.appendChild(option);
     });
   }
+  
+  function loadTheme(theme) {
+    if (theme === 'default') {
+      editor.setOption('theme', 'default');
+    } else {
+      let link = document.getElementById('theme-stylesheet');
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.id = 'theme-stylesheet';
+        document.head.appendChild(link);
+      }
+      link.href = `codemirror/theme/${theme.replace(/\s+/g, '-')}.css`;
+      editor.setOption('theme', theme);
+    }
+    sessionStorage.setItem('selectedTheme', theme);
+  }
+  
+  function toggleTheme() {
+    themeFlag = !themeFlag;
+    sessionStorage.setItem('themeMode', themeFlag ? 'light' : 'dark');
+    applyThemeSettings();
+    showToast(`Switched to ${themeFlag ? 'light' : 'dark'} mode!`);
+  }
+  
+  function applyThemeSettings() {
+    document.documentElement.classList.toggle('day', themeFlag);
+    themeToggle.innerHTML = themeFlag
+      ? '<i class="fas fa-moon"></i><span class="hidden-mobile">Night</span>'
+      : '<i class="fas fa-sun"></i><span class="hidden-mobile">Day</span>';
+    updateThemeOptions(themeFlag ? lightThemes : darkThemes);
+    const defaultTheme = savedTheme || (themeFlag ? 'default' : 'dracula');
+    themeSelector.value = defaultTheme;
+    loadTheme(defaultTheme);
+  }
+  
+  themeToggle.addEventListener('click', toggleTheme);
+  themeSelector.addEventListener('change', function () {
+    loadTheme(this.value);
+  });
+  
+  applyThemeSettings();
 
   function showToast(message) {
     const toast = document.createElement('div');
