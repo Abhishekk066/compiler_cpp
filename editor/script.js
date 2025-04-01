@@ -229,7 +229,6 @@ async function init() {
     } catch (err) {
       console.error('Error generating URL:', err);
 
-      // Error toast for URL generation failure
       const toast = document.createElement('div');
       toast.className = 'toast';
       toast.style.borderLeft = '4px solid var(--error-text)';
@@ -289,7 +288,6 @@ async function init() {
     }
   };
 
-  // WebSocket Error Handling
   socket.onerror = function (error) {
     console.error('WebSocket Error:', error);
     document.getElementById('output').innerHTML =
@@ -300,8 +298,6 @@ async function init() {
   socket.onclose = function (event) {
     document.getElementById('output').innerHTML =
       '<span class="output-warning">Connection closed. Please refresh the page to reconnect.</span>';
-
-    // Update the status indicator
     document.querySelector('.status-item:nth-child(2) span').textContent =
       'Disconnected';
     document.querySelector('.status-item:nth-child(2) span').style.color =
@@ -320,7 +316,6 @@ async function init() {
       editorContainer.style.width = '100%';
       outputContainer.style.width = '0%';
     } else if (editorView === 2) {
-      // Show output, hide editor
       editorContainer.style.display = 'none';
       outputContainer.style.display = 'block';
       outputContainer.classList.add('output-fullscreen');
@@ -348,7 +343,6 @@ async function init() {
       const containerHeight = mainContainer.clientHeight;
 
       if (resizeType === 'horizontal') {
-        //Horizontal Resizing (Desktop)
         const deltaX = e.clientX - initialX;
         let newEditorWidth =
           ((initialEditorWidth + deltaX) / containerWidth) * 100;
@@ -358,7 +352,6 @@ async function init() {
           outputContainer.style.width = `${100 - newEditorWidth}%`;
         }
       } else if (resizeType === 'vertical') {
-        //Vertical Resizing (Mobile)
         const deltaY = e.clientY - initialY;
         let newEditorHeight =
           ((initialEditorHeight + deltaY) / containerHeight) * 100;
@@ -371,7 +364,6 @@ async function init() {
     });
   }
 
-  // Start Horizontal Resizing
   dragbarVertical.addEventListener('mousedown', (e) => {
     isResizing = true;
     resizeType = 'horizontal';
@@ -381,7 +373,6 @@ async function init() {
     document.body.style.userSelect = 'none';
   });
 
-  // Start Vertical Resizing
   dragbarHorizontal.addEventListener('mousedown', (e) => {
     isResizing = true;
     resizeType = 'vertical';
@@ -464,7 +455,6 @@ async function init() {
   });
 
   const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-  let themeFlag = sessionStorage.getItem('themeMode') === 'light';
   
   function toggleTheme() {
     themeFlag = !themeFlag;
