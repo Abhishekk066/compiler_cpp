@@ -148,8 +148,6 @@ int main() {
 
 app.post('/get-theme', (req, res) => {
   const { themeMode } = req.body;
-  console.log(themeMode);
-
   if (themeMode === 'light') {
     app.get('/redirect-day', (req, res) => {
       res.sendFile(path.join(__dirname, '404_day.html'));
