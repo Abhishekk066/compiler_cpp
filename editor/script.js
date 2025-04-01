@@ -416,7 +416,7 @@ async function init() {
   const savedTheme = sessionStorage.getItem('selectedTheme');
   const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
   
-  let themeFlag = savedMode ? savedMode === 'light' : prefersDarkScheme.matches;
+  let themeFlag = savedMode ? savedMode === 'light' : !prefersDarkScheme.matches;
   
   prefersDarkScheme.addEventListener('change', (e) => {
     if (!savedMode) {
