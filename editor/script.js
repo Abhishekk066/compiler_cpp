@@ -410,71 +410,72 @@ async function init() {
     'panda-syntax',
   ];
   
-  const themeSelector = document.querySelector('select');
-  const themeToggle = document.querySelector('.mode');
-  const savedMode = sessionStorage.getItem('themeMode');
-  const savedTheme = sessionStorage.getItem('selectedTheme');
-  const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-  
-  let themeFlag = savedMode ? savedMode === 'dark' : !prefersDarkScheme.matches;
-  
-  prefersDarkScheme.addEventListener('change', (e) => {
+  const themeSelector = document.querySelector("select");
+  const themeToggle = document.querySelector(".mode");
+  const savedMode = sessionStorage.getItem("themeMode");
+  const savedTheme = sessionStorage.getItem("selectedTheme");
+  const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+  let themeFlag = savedMode ? savedMode === "dark" : prefersDarkScheme.matches;
+
+  prefersDarkScheme.addEventListener("change", (e) => {
     if (!savedMode) {
       themeFlag = e.matches;
       applyThemeSettings();
     }
   });
-  
+
   function updateThemeOptions(themes) {
-    themeSelector.innerHTML = '';
+    themeSelector.innerHTML = "";
     themes.forEach((theme) => {
-      const option = document.createElement('option');
+      const option = document.createElement("option");
       option.value = theme;
       option.textContent = theme;
       themeSelector.appendChild(option);
     });
   }
-  
+
   function loadTheme(theme) {
-    if (theme === 'default') {
-      editor.setOption('theme', 'default');
+    if (theme === "default") {
+      editor.setOption("theme", "default");
     } else {
-      let link = document.getElementById('theme-stylesheet');
+      let link = document.getElementById("theme-stylesheet");
       if (!link) {
-        link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.id = 'theme-stylesheet';
+        link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.id = "theme-stylesheet";
         document.head.appendChild(link);
       }
-      link.href = `codemirror/theme/${theme.replace(/\s+/g, '-')}.css`;
-      editor.setOption('theme', theme);
+      link.href = `codemirror/theme/${theme.replace(/\s+/g, "-")}.css`;
+      editor.setOption("theme", theme);
     }
-    sessionStorage.setItem('selectedTheme', theme);
+    sessionStorage.setItem("selectedTheme", theme);
   }
-  
+
   function toggleTheme() {
     themeFlag = !themeFlag;
-    sessionStorage.setItem('themeMode', themeFlag ? 'light' : 'dark');
+    sessionStorage.setItem("themeMode", themeFlag ? "dark" : "light");
+    sessionStorage.setItem("selectedTheme", themeFlag ? "dracula" : "default");
     applyThemeSettings();
-    showToast(`Switched to ${themeFlag ? 'light' : 'dark'} mode!`);
+    showToast(`Switched to ${themeFlag ? "dark" : "light"} mode!`);
   }
-  
+
   function applyThemeSettings() {
-    document.documentElement.classList.toggle('day', themeFlag);
+    document.documentElement.classList.toggle("day", !themeFlag);
     themeToggle.innerHTML = themeFlag
-      ? '<i class="fas fa-moon"></i><span class="hidden-mobile">Night</span>'
-      : '<i class="fas fa-sun"></i><span class="hidden-mobile">Day</span>';
-    updateThemeOptions(themeFlag ? lightThemes : darkThemes);
-    const defaultTheme = savedTheme || (themeFlag ? 'default' : 'dracula');
+      ? '<i class="fas fa-sun"></i><span class="hidden-mobile">Day</span>'
+      : '<i class="fas fa-moon"></i><span class="hidden-mobile">Night</span>';
+    updateThemeOptions(themeFlag ? darkThemes : lightThemes);
+    const defaultTheme = savedTheme || (themeFlag ? "dracula" : "default");
     themeSelector.value = defaultTheme;
     loadTheme(defaultTheme);
   }
-  
-  themeToggle.addEventListener('click', toggleTheme);
-  themeSelector.addEventListener('change', function () {
+
+  themeToggle.addEventListener("click", toggleTheme);
+  themeSelector.addEventListener("change", function () {
     loadTheme(this.value);
   });
-  
+
   applyThemeSettings();
 
   function showToast(message) {
