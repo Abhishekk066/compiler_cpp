@@ -400,7 +400,7 @@ async function init() {
     'neat',
     'paraiso-light',
   ];
-
+  
   const darkThemes = [
     'dracula',
     'monokai',
@@ -416,7 +416,14 @@ async function init() {
   const savedTheme = sessionStorage.getItem('selectedTheme');
   const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
   
-  let themeFlag = savedMode ? savedMode === 'light' : !prefersDarkScheme.matches;
+  let themeFlag = savedMode ? savedMode === 'light' : prefersDarkScheme.matches;
+  
+  prefersDarkScheme.addEventListener('change', (e) => {
+    if (!savedMode) {
+      themeFlag = e.matches;
+      applyThemeSettings();
+    }
+  });
   
   function updateThemeOptions(themes) {
     themeSelector.innerHTML = '';
@@ -427,7 +434,7 @@ async function init() {
       themeSelector.appendChild(option);
     });
   }
-
+  
   function loadTheme(theme) {
     if (theme === 'default') {
       editor.setOption('theme', 'default');
@@ -444,33 +451,31 @@ async function init() {
     }
     sessionStorage.setItem('selectedTheme', theme);
   }
-
+  
   function toggleTheme() {
     themeFlag = !themeFlag;
     sessionStorage.setItem('themeMode', themeFlag ? 'light' : 'dark');
+    applyThemeSettings();
+    showToast(`Switched to ${themeFlag ? 'light' : 'dark'} mode!`);
+  }
+  
+  function applyThemeSettings() {
     document.documentElement.classList.toggle('day', themeFlag);
     themeToggle.innerHTML = themeFlag
       ? '<i class="fas fa-moon"></i><span class="hidden-mobile">Night</span>'
       : '<i class="fas fa-sun"></i><span class="hidden-mobile">Day</span>';
     updateThemeOptions(themeFlag ? lightThemes : darkThemes);
-    themeSelector.value = themeFlag ? 'default' : 'dracula';
-    loadTheme(themeSelector.value);
-    showToast(`Switched to ${themeFlag ? 'light' : 'dark'} mode!`);
+    const defaultTheme = savedTheme || (themeFlag ? 'default' : 'dracula');
+    themeSelector.value = defaultTheme;
+    loadTheme(defaultTheme);
   }
   
   themeToggle.addEventListener('click', toggleTheme);
   themeSelector.addEventListener('change', function () {
     loadTheme(this.value);
   });
-
-  updateThemeOptions(themeFlag ? lightThemes : darkThemes);
-  document.documentElement.classList.toggle('day', themeFlag);
-  themeToggle.innerHTML = themeFlag
-    ? '<i class="fas fa-moon"></i><span class="hidden-mobile">Night</span>'
-    : '<i class="fas fa-sun"></i><span class="hidden-mobile">Day</span>';
-  const defaultTheme = savedTheme || (themeFlag ? 'default' : 'dracula');
-  themeSelector.value = defaultTheme;
-  loadTheme(defaultTheme);
+  
+  applyThemeSettings();
 
   function showToast(message) {
     const toast = document.createElement('div');
