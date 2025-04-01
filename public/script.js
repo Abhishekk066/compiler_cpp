@@ -429,7 +429,6 @@ async function init() {
   });
 
   const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-  let themeFlag = sessionStorage.getItem('themeMode') === 'light';
   
   function toggleTheme() {
     themeFlag = !themeFlag;
