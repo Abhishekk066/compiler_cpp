@@ -88,14 +88,12 @@ async function init() {
 
     socket.send(JSON.stringify({ type: 'code', code: editor.getValue() }));
 
-    // Start the timer
     const timer = setInterval(() => {
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
       document.getElementById('execution-time').textContent = elapsed + 's';
       executionTime = elapsed + 's';
     }, 100);
 
-    // Store the timer ID to clear it later
     if (window.innerWidth <= 768) {
       editorContainer.style.display = 'none';
       outputContainer.style.display = 'block';
@@ -140,7 +138,6 @@ async function init() {
       .catch((err) => {
         console.error('Error copying code: ', err);
 
-        // Error toast
         const toast = document.createElement('div');
         toast.className = 'toast';
         toast.style.borderLeft = '4px solid var(--error-text)';
@@ -218,7 +215,6 @@ async function init() {
         .catch((err) => {
           console.error('Error copying code: ', err);
 
-          // Error toast
           const toast = document.createElement('div');
           toast.className = 'toast';
           toast.style.borderLeft = '4px solid var(--error-text)';
@@ -467,19 +463,25 @@ async function init() {
     loadTheme(this.value);
   });
 
-  themeToggle.addEventListener('click', () => {
+  const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+  let themeFlag = sessionStorage.getItem('themeMode') === 'light';
+  
+  function toggleTheme() {
     themeFlag = !themeFlag;
     themeToggle.innerHTML = themeFlag
       ? '<i class="fas fa-moon"></i><span class="hidden-mobile">Night</span>'
       : '<i class="fas fa-sun"></i><span class="hidden-mobile">Day</span>';
+  
     document.documentElement.classList.toggle('day', themeFlag);
     sessionStorage.setItem('themeMode', themeFlag ? 'light' : 'dark');
     updateThemeOptions(themeFlag ? lightThemes : darkThemes);
-
+  
     themeSelector.value = themeFlag ? 'default' : 'dracula';
     loadTheme(themeSelector.value);
     showToast(`Switched to ${themeFlag ? 'light' : 'dark'} mode!`);
-  });
+  }
+  
+  themeToggle.addEventListener('click', toggleTheme);
 
   function updateThemeOptions(themes) {
     themeSelector.innerHTML = '';
