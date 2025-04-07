@@ -879,7 +879,7 @@ label {
   }
 
   .status-bar {
-    display: block;
+    display: flex;
   }
 
   .file-name {
@@ -981,7 +981,7 @@ label {
   }
 
   .status-bar {
-    display: block;
+    display: flex;
   }
 
   .file-name {
@@ -1087,7 +1087,7 @@ label {
   }
 
   .status-bar {
-    display: block;
+    display: flex;
   }
 
   .file-name {
