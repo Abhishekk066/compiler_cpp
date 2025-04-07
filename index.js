@@ -19,8 +19,6 @@ EventEmitter.defaultMaxListeners = 60;
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
-var currentCode;
-var filename;
 
 const mainDomain = 'https://compiler-cpp-production.up.railway.app';
 const requestedDomain = 'https://file-manager-cpp-production.up.railway.app';
@@ -40,7 +38,7 @@ app.use(
 app.post('/generate-url', async (req, res) => {
   const { code, filename } = req.body;
   if (!code) return res.status(400).json({ error: 'Code is required' });
-  
+
   const host = req.get('host');
   const data = { message: true, type: 'default', filename, code };
   const codeId = crypto.randomUUID();
@@ -56,17 +54,20 @@ app.post('/generate-url', async (req, res) => {
 });
 
 app.post('/generate-qrcode', async (req, res) => {
+  const { url } = req.body;
+
+  if (!url) {
+    return res.status(400).json({ error: 'URL is required' });
+  }
+
   try {
-    const { code, filename } = req.body;
-    if (!code) return res.status(400).json({ error: 'Code is required' });
-    const url = await QRCode.toDataURL(code);
-    QRCode.toFile('qrcode.png', code)
-      .then(() => console.log('QR Code saved as qrcode.png'))
-      .catch(console.error);
-    res.send(url);
+    const qrcodeUrl = await QRCode.toDataURL(url, {
+      margin: 2,
+    });
+    res.type('image/png').send(qrcodeUrl);
   } catch (err) {
-    const error = await QRCode.toDataURL('not found');
-    res.status(500).send(error);
+    const fallback = await QRCode.toDataURL('not found', { margin: 2 });
+    res.status(500).type('image/png').send(fallback);
   }
 });
 
@@ -91,7 +92,6 @@ async function sendUrl(req, res) {
     const url = `${mainDomain}${route}`;
     res.status(200).json({ message: true, url });
   } catch (error) {
-    console.error('Fetch error:', error);
     return res
       .status(500)
       .json({ error: 'Failed to fetch code from external service' });
@@ -107,7 +107,7 @@ app.post('/code/c/:id', (req, res) => {
   if (!code) {
     return res
       .status(404)
-      .send('<script>window.location.replace('/');</script>');
+      .send('<script>window.location.replace(' / ');</script>');
   }
 
   res.send(code);
@@ -126,7 +126,6 @@ app.post('/code/share/:id', (req, res) => {
   res.send(code);
 });
 
-// 🔹 API to Fetch Default Code
 app.post('/default-code', async (req, res) => {
   try {
     res.json({
@@ -141,8 +140,9 @@ int main() {
 }`,
     });
   } catch (error) {
-    console.error('Fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch code from external service' });
+    res
+      .status(500)
+      .json({ error: 'Failed to fetch code from external service' });
   }
 });
 
@@ -161,9 +161,7 @@ app.post('/get-theme', (req, res) => {
   res.json({ message: true, themeMode });
 });
 
-// 🔹 WebSocket Handler for Compilation and Execution
 wss.on('connection', (ws) => {
-  console.log('Client connected');
   const clientId = crypto.randomUUID();
   let sourceFile = path.join(__dirname, `code_${clientId}.cpp`);
   let outputFile = path.join(__dirname, `code_${clientId}.exe`);
@@ -180,8 +178,6 @@ wss.on('connection', (ws) => {
         }
 
         await fs.writeFile(sourceFile, data.code);
-        console.log(`Code received from ${clientId}. Compiling...`);
-
         await deleteFileIfExists(outputFile);
 
         const compile = spawn('g++', [sourceFile, '-o', outputFile]);
@@ -237,7 +233,6 @@ wss.on('connection', (ws) => {
         cppProcess.stdin.write(data.input + '\n');
       }
     } catch (err) {
-      console.error('Error processing message:', err);
       ws.send(
         JSON.stringify({ type: 'error', message: 'Internal Server Error' }),
       );
@@ -246,16 +241,12 @@ wss.on('connection', (ws) => {
 
   ws.on('close', async () => {
     if (cppProcess) cppProcess.kill();
-    console.log(`Client ${clientId} disconnected`);
-
     await deleteFileIfExists(sourceFile);
     await deleteFileIfExists(outputFile);
   });
 });
 
 process.on('SIGINT', async () => {
-  console.log('Shutting down, cleaning up...');
-
   const files = await fs.readdir(__dirname);
   for (const file of files) {
     if (
@@ -266,7 +257,6 @@ process.on('SIGINT', async () => {
     }
   }
 
-  console.log('Cleanup complete. Exiting.');
   process.exit();
 });
 
@@ -277,7 +267,6 @@ async function deleteFileIfExists(filePath) {
   try {
     await fs.access(filePath);
     await fs.unlink(filePath);
-    console.log(`Deleted: ${filePath}`);
   } catch (err) {
     if (err.code !== 'ENOENT') {
       console.error(`Error deleting ${filePath}:`, err);
@@ -285,6 +274,4 @@ async function deleteFileIfExists(filePath) {
   }
 }
 
-server.listen(10000, () => {
-  console.log('server is running on https://compiler-cpp.onrender.com');
-});
+server.listen(10000);
