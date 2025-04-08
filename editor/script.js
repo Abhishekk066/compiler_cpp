@@ -209,7 +209,7 @@ async function init() {
     }
   }
 
-  let shareUrl;
+  let shareUrl = 'https://compiler-cpp-production.up.railway.app';
   async function generateQrCode() {
     shareUrl = await generateCode();
     try {
