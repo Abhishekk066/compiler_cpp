@@ -209,12 +209,14 @@ async function init() {
     }
   }
 
+  let shareUrl;
   async function generateQrCode() {
+    shareUrl = await generateCode();
     try {
       const res = await fetch('/generate-qrcode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: await generateCode() }),
+        body: JSON.stringify({ url: shareUrl }),
       });
       if (!res.ok) throw new Error('Failed to generate URL');
       const data = await res.text();
@@ -226,7 +228,6 @@ async function init() {
   }
 
   async function copyShareCode() {
-    const shareUrl = await generateCode();
     try {
       if (!shareUrl) throw new Error('Could not generate URL');
 
