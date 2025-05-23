@@ -519,8 +519,8 @@ async function init() {
       
       modelDiv.addEventListener('mousedown', (e) => {
         isDragging = true;
-        offsetX = e.clientX - win.offsetLeft;
-        offsetY = e.clientY - win.offsetTop;
+        offsetX = e.clientX - modelDiv.offsetLeft;
+        offsetY = e.clientY - modelDiv.offsetTop;
         console.log('pressed');
         document.addEventListener('mousemove', moveWindow);
         document.addEventListener('mouseup', stopMove);
