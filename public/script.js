@@ -1,5 +1,5 @@
 async function init() {
-  let socket = new WebSocket(`wss://${modelDivdow.location.host}`);
+  let socket = new WebSocket(`wss://${window.location.host}`);
   const editorContainer = document.getElementById('editorContainer');
   const outputContainer = document.getElementById('outputContainer');
   const toggleViewBtn = document.getElementById('toggle-view');
@@ -71,9 +71,9 @@ async function init() {
       executionTime = elapsed + 's';
     }, 100);
 
-    modelDivdow.currentTimer = timer;
+    window.currentTimer = timer;
 
-    if (modelDivdow.innerWidth <= 768) {
+    if (window.innerWidth <= 768) {
       editorContainer.style.display = 'none';
       outputContainer.style.display = 'block';
       outputContainer.classList.add('output-fullscreen');
@@ -94,7 +94,7 @@ async function init() {
   });
 
   function showFullEditor() {
-    if (modelDivdow.innerWidth > 768) return;
+    if (window.innerWidth > 768) return;
 
     editorView = 1;
     outputBtn.style.background = '';
@@ -109,7 +109,7 @@ async function init() {
   }
 
   function showOutput() {
-    if (modelDivdow.innerWidth > 768) return;
+    if (window.innerWidth > 768) return;
     editorView = 2;
     outputBtn.style.background = 'darkviolet';
     fullEditor.style.background = '';
@@ -253,7 +253,7 @@ async function init() {
     e.addEventListener('click', openShareModel);
   });
 
-  modelDivdow.addEventListener('resize', () => {
+  window.addEventListener('resize', () => {
     editor.refresh();
   });
 
@@ -283,8 +283,8 @@ async function init() {
       outputBox.appendChild(inputField);
       inputField.focus();
     } else if (data.type === 'finished') {
-      if (modelDivdow.currentTimer) {
-        clearInterval(modelDivdow.currentTimer);
+      if (window.currentTimer) {
+        clearInterval(window.currentTimer);
       }
       outputBox.innerHTML += `<br><br><span class="output-success">=== Compiled in ${executionTime} ===</span>
 <span class="output-success">=== Code Execution Successful ===</span>`;
@@ -295,7 +295,7 @@ async function init() {
     console.error('WebSocket Error:', error);
     document.getElementById('output').innerHTML =
       '<span class="output-error">Connection error! Please check if the server is running.</span>';
-    clearInterval(modelDivdow.currentTimer);
+    clearInterval(window.currentTimer);
   };
 
   socket.onclose = function (event) {
@@ -306,7 +306,7 @@ async function init() {
       'Disconnected';
     document.querySelector('.status-item:nth-child(2) span').style.color =
       'var(--error-text)';
-    clearInterval(modelDivdow.currentTimer);
+    clearInterval(window.currentTimer);
   };
 
   toggleViewBtn.addEventListener('click', () => {
@@ -431,7 +431,7 @@ async function init() {
   const themeToggle = document.querySelector('.mode');
   const savedMode = sessionStorage.getItem('themeMode');
   const savedTheme = sessionStorage.getItem('selectedTheme');
-  const prefersDarkScheme = modelDivdow.matchMedia('(prefers-color-scheme: dark)');
+  const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
   let themeFlag = savedMode ? savedMode === 'dark' : prefersDarkScheme.matches;
 
@@ -522,17 +522,17 @@ async function init() {
         offsetX = e.clientX - modelDiv.offsetLeft;
         offsetY = e.clientY - modelDiv.offsetTop;
         console.log('pressed');
-        document.addEventListener('mousemove', movemodelDivdow);
+        document.addEventListener('mousemove', movewindow);
         document.addEventListener('mouseup', stopMove);
      });
 
-     function movemodelDivdow(e) {
+     function movewindow(e) {
         if (!isDragging) return;
         
         const modelDivWidth = modelDiv.offsetWidth;
         const modelDivHeight = modelDiv.offsetHeight;
-        const viewportWidth = modelDivdow.innerWidth;
-        const viewportHeight = modelDivdow.innerHeight;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
         
         let newLeft = e.clientX - offsetX;
         let newTop = e.clientY - offsetY;
@@ -547,7 +547,7 @@ async function init() {
     function stopMove() {
       console.log('released');
       isDragging = false;
-      document.removeEventListener('mousemove', movemodelDivdow);
+      document.removeEventListener('mousemove', movewindow);
       document.removeEventListener('mouseup', stopMove);
     }
   }
@@ -572,7 +572,7 @@ async function init() {
     document.body.append(modelDiv);
     if (modelDiv) {
       modelDiv.style.display = 'block';
-      links.style.display = modelDivdow.innerWidth <= 768 ? 'none' : 'block';
+      links.style.display = window.innerWidth <= 768 ? 'none' : 'block';
       blurCon.style.display = 'none';
     }
     const shareCodeUrl = document.querySelector('.share-code');
@@ -622,7 +622,7 @@ async function init() {
 
   function originalWidthHeight() {
     if (!editorContainer || !outputContainer || !toggleViewBtn) return;
-    if (modelDivdow.innerWidth > 768) {
+    if (window.innerWidth > 768) {
       editorContainer.style.width = '52%';
       outputContainer.style.width = '48%';
       editorContainer.style.height = '100%';
@@ -650,7 +650,7 @@ async function init() {
 
   function isMobile() {
     if (!links || !blurCon || !closeX) return;
-    if (modelDivdow.innerWidth > 768) {
+    if (window.innerWidth > 768) {
       links.style.display = 'flex';
       closeX.style.display = 'none';
       blurCon.style.display = 'none';
@@ -668,7 +668,7 @@ async function init() {
   }
 
   responsive();
-  modelDivdow.addEventListener('resize', responsive);
+  window.addEventListener('resize', responsive);
 }
 
 document.addEventListener('DOMContentLoaded', init);
