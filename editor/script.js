@@ -540,6 +540,44 @@ async function init() {
   const blurCon = document.querySelector('.blur');
   let flag = false;
 
+  if(modelDiv) {
+      let offsetX = 0, offsetY = 0, isDragging = false;
+      
+      modelDiv.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        offsetX = e.clientX - win.offsetLeft;
+        offsetY = e.clientY - win.offsetTop;
+        console.log('pressed');
+        document.addEventListener('mousemove', moveWindow);
+        document.addEventListener('mouseup', stopMove);
+     });
+
+     function moveWindow(e) {
+        if (!isDragging) return;
+        
+        const winWidth = win.offsetWidth;
+        const winHeight = win.offsetHeight;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        let newLeft = e.clientX - offsetX;
+        let newTop = e.clientY - offsetY;
+        
+        newLeft = Math.max(0, Math.min(viewportWidth - winWidth, newLeft));
+        newTop = Math.max(0, Math.min(viewportHeight - winHeight, newTop));
+        
+        win.style.left = `${newLeft}px`;
+        win.style.top = `${newTop}px`;
+    }
+
+    function stopMove() {
+      console.log('released');
+      isDragging = false;
+      document.removeEventListener('mousemove', moveWindow);
+      document.removeEventListener('mouseup', stopMove);
+    }
+  }
+
   async function openShareModel() {
     modelImg.src = await generateQrCode();
     modelDiv.className = 'model-div';
