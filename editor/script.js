@@ -545,8 +545,8 @@ async function init() {
       
       modelDiv.addEventListener('mousedown', (e) => {
         isDragging = true;
-        offsetX = e.clientX - win.offsetLeft;
-        offsetY = e.clientY - win.offsetTop;
+        offsetX = e.clientX - modelDiv.offsetLeft;
+        offsetY = e.clientY - modelDiv.offsetTop;
         console.log('pressed');
         document.addEventListener('mousemove', moveWindow);
         document.addEventListener('mouseup', stopMove);
@@ -566,8 +566,8 @@ async function init() {
         newLeft = Math.max(0, Math.min(viewportWidth - winWidth, newLeft));
         newTop = Math.max(0, Math.min(viewportHeight - winHeight, newTop));
         
-        win.style.left = `${newLeft}px`;
-        win.style.top = `${newTop}px`;
+        modelDiv.style.left = `${newLeft}px`;
+        modelDiv.style.top = `${newTop}px`;
     }
 
     function stopMove() {
