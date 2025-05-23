@@ -555,8 +555,8 @@ async function init() {
      function moveWindow(e) {
         if (!isDragging) return;
         
-        const winWidth = win.offsetWidth;
-        const winHeight = win.offsetHeight;
+        const winWidth = modelDiv.offsetWidth;
+        const winHeight = modelDiv.offsetHeight;
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         
