@@ -20,8 +20,8 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-const mainDomain = 'https://compiler-cpp-production.up.railway.app';
-const requestedDomain = 'https://file-manager-cpp-production.up.railway.app';
+const mainDomain = 'https://compiler-cpp.onrender.com';
+const requestedDomain = 'https://file-manager-cpp.onrender.com;
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
