@@ -10,6 +10,10 @@ async function init() {
   let editorView = 0;
   let editor;
 
+  if (window.location.href.endsWith("/")) {
+    history.pushState(null, "", window.location.href.replace(/\/$/, ""));
+  }
+
   try {
     const res = await fetch('/default-code', { method: 'POST' });
     const data = await res.json();
