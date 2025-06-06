@@ -10,6 +10,7 @@ async function init() {
   let editorView = 0;
   let editor;
   const pathName = window.location.pathname;
+  history.pushState(null, "", window.location.href.replace(/\/$/, ""))
 
   try {
     const res = await fetch(`/code${pathName}`, { method: 'POST' });
