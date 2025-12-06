@@ -286,7 +286,6 @@ nav {
   height: 100%;
   min-width: 350px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  display: none;
 }
 
 input[type='text'] {
@@ -691,6 +690,13 @@ label {
 
 /* Responsive styles */
 @media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+    height: calc(100vh - 4rem);
+    padding: 0.26rem;
+    gap: 0.5rem;
+  }
+
   .editor-container,
   .output-container {
     width: 100% !important;
@@ -844,6 +850,12 @@ label {
 }
 
 @media (max-width: 425px) {
+  .main-container {
+    flex-direction: column;
+    height: calc(100vh - 4rem);
+    padding: 0.25rem;
+    gap: 0.5rem;
+  }
 
   .editor-container,
   .output-container {
@@ -940,6 +952,12 @@ label {
 }
 
 @media (max-width: 375px) {
+  .main-container {
+    flex-direction: column;
+    height: calc(100vh - 4rem);
+    padding: 0.2rem;
+    gap: 0.5rem;
+  }
 
   .editor-container,
   .output-container {
@@ -1040,6 +1058,13 @@ label {
 }
 
 @media (max-width: 320px) {
+  .main-container {
+    flex-direction: column;
+    height: calc(100vh - 4rem);
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
   .editor-container,
   .output-container {
     width: 100% !important;

@@ -95,6 +95,10 @@ async function init() {
 
     socket.send(JSON.stringify({ type: 'code', code: editor.getValue() }));
 
+    if (window.currentTimer) {
+      clearInterval(window.currentTimer);
+    }
+
     const timer = setInterval(() => {
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
       document.getElementById('execution-time').textContent = elapsed + 's';
@@ -108,7 +112,6 @@ async function init() {
       return;
     }
 
-    // Desktop - ensure proper split view
     if (editorView !== 0) {
       editorView = 0;
       responsive();
@@ -219,11 +222,10 @@ async function init() {
     }
   }
 
-  let shareUrl = 'https://compiler-cpp-production.up.railway.app';
-
   async function generateQrCode() {
-    shareUrl = await generateCode();
     try {
+      const shareUrl = await generateCode();
+      if (!shareUrl) throw new Error('Could not generate URL');
       const res = await fetch('/generate-qrcode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -369,7 +371,6 @@ async function init() {
       outputContainer.style.height = '0%';
       dragbarHorizontal.style.display = 'none';
     } else if (editorView === 2) {
-      // Show Output Only
       outputBtn.style.background = 'darkviolet';
       fullEditor.style.background = '';
       editorContainer.style.display = 'none';
