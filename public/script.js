@@ -1,5 +1,5 @@
 async function init() {
-  let socket = new WebSocket(`wss://${window.location.host}`);
+  let socket = new WebSocket(`ws://${window.location.host}`);
   const editorContainer = document.getElementById('editorContainer');
   const outputContainer = document.getElementById('outputContainer');
   const toggleViewBtn = document.getElementById('toggle-view');
@@ -10,8 +10,8 @@ async function init() {
   let editorView = 0;
   let editor;
 
-  if (window.location.href.endsWith("/")) {
-    history.pushState(null, "", window.location.href.replace(/\/$/, ""));
+  if (window.location.href.endsWith('/')) {
+    history.pushState(null, '', window.location.href.replace(/\/$/, ''));
   }
 
   try {
@@ -61,6 +61,7 @@ async function init() {
   }
 
   let executionTime = 0;
+
   function runCode() {
     document.getElementById('output').innerHTML =
       'Compiling...<div class="loading-indicator ml-2"></div>';
@@ -78,18 +79,15 @@ async function init() {
     window.currentTimer = timer;
 
     if (window.innerWidth <= 768) {
-      editorContainer.style.display = 'none';
-      outputContainer.style.display = 'block';
-      outputContainer.classList.add('output-fullscreen');
-      toggleViewBtn.innerHTML =
-        '<i class="fas fa-terminal"></i><span class="hidden-mobile">Switch</span>';
-      editorContainer.style.width = '0%';
-      outputContainer.style.width = '100%';
-      outputBtn.style.background = 'darkviolet';
+      showOutput();
       return;
     }
 
-    originalWidthHeight();
+    // Desktop - ensure proper split view
+    if (editorView !== 0) {
+      editorView = 0;
+      responsive();
+    }
   }
 
   const runCodeElem = document.querySelectorAll('.run-code');
@@ -102,28 +100,37 @@ async function init() {
 
     editorView = 1;
     outputBtn.style.background = '';
+    fullEditor.style.background = '';
     editorContainer.style.display = 'block';
     editorContainer.classList.add('editor-fullscreen');
     outputContainer.style.display = 'none';
+    outputContainer.classList.remove('output-fullscreen');
     toggleViewBtn.innerHTML =
       '<i class="fas fa-code"></i><span class="hidden-mobile">Switch</span>';
     editorContainer.style.width = '100%';
     outputContainer.style.width = '0%';
+    editorContainer.style.height = '100%';
+    outputContainer.style.height = '0%';
     dragbarHorizontal.style.display = 'none';
+    editor.refresh();
   }
 
   function showOutput() {
     if (window.innerWidth > 768) return;
+
     editorView = 2;
     outputBtn.style.background = 'darkviolet';
     fullEditor.style.background = '';
     editorContainer.style.display = 'none';
+    editorContainer.classList.remove('editor-fullscreen');
     outputContainer.style.display = 'block';
     outputContainer.classList.add('output-fullscreen');
     toggleViewBtn.innerHTML =
       '<i class="fas fa-terminal"></i><span class="hidden-mobile">Switch</span>';
     editorContainer.style.width = '0%';
     outputContainer.style.width = '100%';
+    editorContainer.style.height = '0%';
+    outputContainer.style.height = '100%';
     dragbarHorizontal.style.display = 'none';
   }
 
@@ -188,6 +195,7 @@ async function init() {
   }
 
   let shareUrl = 'https://compiler-cpp-production.up.railway.app';
+
   async function generateQrCode() {
     shareUrl = await generateCode();
     try {
@@ -315,38 +323,68 @@ async function init() {
 
   toggleViewBtn.addEventListener('click', () => {
     editorView++;
+
+    if (editorView > 2) {
+      editorView = 0;
+    }
+
     if (editorView === 1) {
+      // Show Editor Only
+      outputBtn.style.background = '';
+      fullEditor.style.background = '';
       editorContainer.style.display = 'block';
       editorContainer.classList.add('editor-fullscreen');
       outputContainer.style.display = 'none';
+      outputContainer.classList.remove('output-fullscreen');
       toggleViewBtn.innerHTML =
         '<i class="fas fa-code"></i><span class="hidden-mobile">Switch</span>';
       editorContainer.style.width = '100%';
       outputContainer.style.width = '0%';
+      editorContainer.style.height = '100%';
+      outputContainer.style.height = '0%';
       dragbarHorizontal.style.display = 'none';
-      outputBtn.style.background = '';
     } else if (editorView === 2) {
+      // Show Output Only
       outputBtn.style.background = 'darkviolet';
+      fullEditor.style.background = '';
       editorContainer.style.display = 'none';
+      editorContainer.classList.remove('editor-fullscreen');
       outputContainer.style.display = 'block';
       outputContainer.classList.add('output-fullscreen');
       toggleViewBtn.innerHTML =
         '<i class="fas fa-terminal"></i><span class="hidden-mobile">Switch</span>';
       editorContainer.style.width = '0%';
       outputContainer.style.width = '100%';
+      editorContainer.style.height = '0%';
+      outputContainer.style.height = '100%';
+      dragbarHorizontal.style.display = 'none';
     } else {
-      editorContainer.style.height = '52%';
-      outputContainer.style.height = '48%';
+      // Show Split View
+      outputBtn.style.background = '';
+      fullEditor.style.background = '';
       editorContainer.style.display = 'block';
       outputContainer.style.display = 'block';
       editorContainer.classList.remove('editor-fullscreen');
       outputContainer.classList.remove('output-fullscreen');
       toggleViewBtn.innerHTML =
         '<i class="fas fa-exchange-alt"></i><span class="hidden-mobile">Switch</span>';
-      dragbarHorizontal.style.display = 'block';
-      outputBtn.style.background = '';
-      editorView = 0;
+
+      if (window.innerWidth <= 768) {
+        editorContainer.style.width = '100%';
+        outputContainer.style.width = '100%';
+        editorContainer.style.height = '52%';
+        outputContainer.style.height = '48%';
+        dragbarHorizontal.style.display = 'block';
+      } else {
+        editorContainer.style.width = '52%';
+        outputContainer.style.width = '48%';
+        editorContainer.style.height = '100%';
+        outputContainer.style.height = '100%';
+        dragbarHorizontal.style.display = 'none';
+      }
     }
+
+    editor.refresh();
   });
 
   const dragbarVertical = document.getElementById('dragbar');
@@ -518,38 +556,38 @@ async function init() {
   const blurCon = document.querySelector('.blur');
   let flag = false;
 
-  if(modelDiv) {
-      let offsetX = 0, offsetY = 0, isDragging = false;
-      
-      modelDiv.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        offsetX = e.clientX - modelDiv.offsetLeft;
-        offsetY = e.clientY - modelDiv.offsetTop;
-        console.log('pressed');
-        document.addEventListener('mousemove', movewindow);
-        document.addEventListener('mouseup', stopMove);
-     });
+  if (modelDiv) {
+    let offsetX = 0,
+      offsetY = 0,
+      isDragging = false;
 
-     function movewindow(e) {
-        if (!isDragging) return;
-        
-        const modelDivWidth = modelDiv.offsetWidth;
-        const modelDivHeight = modelDiv.offsetHeight;
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        
-        let newLeft = e.clientX - offsetX;
-        let newTop = e.clientY - offsetY;
-        
-        newLeft = Math.max(0, Math.min(viewportWidth - modelDivWidth, newLeft));
-        newTop = Math.max(0, Math.min(viewportHeight - modelDivHeight, newTop));
-        
-        modelDiv.style.left = `${newLeft}px`;
-        modelDiv.style.top = `${newTop}px`;
+    modelDiv.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      offsetX = e.clientX - modelDiv.offsetLeft;
+      offsetY = e.clientY - modelDiv.offsetTop;
+      document.addEventListener('mousemove', movewindow);
+      document.addEventListener('mouseup', stopMove);
+    });
+
+    function movewindow(e) {
+      if (!isDragging) return;
+
+      const modelDivWidth = modelDiv.offsetWidth;
+      const modelDivHeight = modelDiv.offsetHeight;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      let newLeft = e.clientX - offsetX;
+      let newTop = e.clientY - offsetY;
+
+      newLeft = Math.max(0, Math.min(viewportWidth - modelDivWidth, newLeft));
+      newTop = Math.max(0, Math.min(viewportHeight - modelDivHeight, newTop));
+
+      modelDiv.style.left = `${newLeft}px`;
+      modelDiv.style.top = `${newTop}px`;
     }
 
     function stopMove() {
-      console.log('released');
       isDragging = false;
       document.removeEventListener('mousemove', movewindow);
       document.removeEventListener('mouseup', stopMove);
@@ -667,8 +705,37 @@ async function init() {
   }
 
   function responsive() {
-    originalWidthHeight();
+    if (window.innerWidth > 768) {
+      // Desktop view - reset to split view
+      editorView = 0;
+      outputBtn.style.background = '';
+      fullEditor.style.background = '';
+      editorContainer.style.width = '52%';
+      outputContainer.style.width = '48%';
+      editorContainer.style.height = '100%';
+      outputContainer.style.height = '100%';
+      editorContainer.style.display = 'block';
+      outputContainer.style.display = 'block';
+      editorContainer.classList.remove('editor-fullscreen');
+      outputContainer.classList.remove('output-fullscreen');
+      toggleViewBtn.innerHTML =
+        '<i class="fas fa-exchange-alt"></i><span class="hidden-mobile">Switch</span>';
+      dragbarHorizontal.style.display = 'none';
+    } else {
+      // Mobile view - maintain current view or default to editor
+      if (editorView === 0) {
+        editorView = 1;
+      }
+
+      if (editorView === 1) {
+        showFullEditor();
+      } else if (editorView === 2) {
+        showOutput();
+      }
+    }
+
     isMobile();
+    editor.refresh();
   }
 
   responsive();
