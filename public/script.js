@@ -1,5 +1,5 @@
 async function init() {
-  let socket = new WebSocket(`ws://${window.location.host}`);
+  let socket = new WebSocket(`wss://${window.location.host}`);
   const editorContainer = document.getElementById('editorContainer');
   const outputContainer = document.getElementById('outputContainer');
   const toggleViewBtn = document.getElementById('toggle-view');
@@ -359,7 +359,6 @@ async function init() {
       outputContainer.style.height = '100%';
       dragbarHorizontal.style.display = 'none';
     } else {
-      // Show Split View
       outputBtn.style.background = '';
       fullEditor.style.background = '';
       editorContainer.style.display = 'block';
@@ -662,34 +661,6 @@ async function init() {
     document.querySelector('.loader-container .title').textContent = message;
   }
 
-  function originalWidthHeight() {
-    if (!editorContainer || !outputContainer || !toggleViewBtn) return;
-    if (window.innerWidth > 768) {
-      editorContainer.style.width = '52%';
-      outputContainer.style.width = '48%';
-      editorContainer.style.height = '100%';
-      outputContainer.style.height = '100%';
-      editorContainer.style.display = 'block';
-      outputContainer.style.display = 'block';
-      editorContainer.classList.remove('editor-fullscreen');
-      outputContainer.classList.remove('output-fullscreen');
-      toggleViewBtn.innerHTML =
-        '<i class="fas fa-exchange-alt"></i><span class="hidden-mobile">Switch</span>';
-      editorView = 0;
-    } else {
-      editorView = 1;
-      outputBtn.style.background = '';
-      editorContainer.style.display = 'block';
-      editorContainer.classList.add('editor-fullscreen');
-      outputContainer.style.display = 'none';
-      toggleViewBtn.innerHTML =
-        '<i class="fas fa-code"></i><span class="hidden-mobile">Switch</span>';
-      editorContainer.style.width = '100%';
-      outputContainer.style.width = '0%';
-      dragbarHorizontal.style.display = 'none';
-    }
-  }
-
   function isMobile() {
     if (!links || !blurCon || !closeX) return;
     if (window.innerWidth > 768) {
@@ -706,7 +677,6 @@ async function init() {
 
   function responsive() {
     if (window.innerWidth > 768) {
-      // Desktop view - reset to split view
       editorView = 0;
       outputBtn.style.background = '';
       fullEditor.style.background = '';
@@ -722,7 +692,6 @@ async function init() {
         '<i class="fas fa-exchange-alt"></i><span class="hidden-mobile">Switch</span>';
       dragbarHorizontal.style.display = 'none';
     } else {
-      // Mobile view - maintain current view or default to editor
       if (editorView === 0) {
         editorView = 1;
       }
