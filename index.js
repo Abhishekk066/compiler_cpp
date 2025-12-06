@@ -49,7 +49,7 @@ app.post('/generate-url', async (req, res) => {
     express.static(path.join(__dirname, 'node_modules/codemirror')),
   );
   app.use(route, express.static(path.join(__dirname, 'editor')));
-  const url = `${host}${route}`;
+  const url = `https://${host}${route}`;
   res.status(200).json({ message: true, url });
 });
 

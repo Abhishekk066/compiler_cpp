@@ -264,8 +264,7 @@ nav {
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: none !important;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  caret-color: transparent;
-  white-space: nowrap;
+  caret-color: var(--output-text);
 }
 
 .editor-container {
@@ -470,6 +469,7 @@ select:hover {
   left: 50%;
   transform: translateX(-50%);
   width: 200px;
+  z-index: 100000;
   height: fit-content;
   background-color: var(--bg-primary);
   color: var(--text-primary);
