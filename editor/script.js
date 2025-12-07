@@ -86,18 +86,20 @@ async function init() {
   }
 
   let executionTime = 0;
+  window.currentTimer = null;
 
   function runCode() {
     document.getElementById('output').innerHTML =
       'Compiling...<div class="loading-indicator ml-2"></div>';
     document.getElementById('execution-time').textContent = '0.00s';
-    const startTime = performance.now();
-
-    socket.send(JSON.stringify({ type: 'code', code: editor.getValue() }));
 
     if (window.currentTimer) {
       clearInterval(window.currentTimer);
+      window.currentTimer = null;
     }
+
+    const startTime = performance.now();
+    socket.send(JSON.stringify({ type: 'code', code: editor.getValue() }));
 
     const timer = setInterval(() => {
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
@@ -122,6 +124,75 @@ async function init() {
   runCodeElem.forEach((e) => {
     e.addEventListener('click', runCode);
   });
+
+  socket.onmessage = function (event) {
+    let data = JSON.parse(event.data);
+    let outputBox = document.getElementById('output');
+
+    if (data.type === 'compiled') {
+      outputBox.innerHTML =
+        'Compiling...<div class="loading-indicator ml-2"></div>';
+    } else if (data.type === 'output') {
+      outputBox.innerHTML += data.message;
+    } else if (data.type === 'error') {
+      if (window.currentTimer) {
+        clearInterval(window.currentTimer);
+        window.currentTimer = null;
+      }
+      outputBox.innerHTML = `<span class="output-error">${data.message}</span>`;
+    } else if (data.type === 'running') {
+      outputBox.innerHTML = '';
+    } else if (data.type === 'input-request') {
+      let inputField = document.createElement('input');
+      inputField.id = 'userInput';
+      inputField.type = 'text';
+      inputField.className = 'w-full';
+      inputField.onkeypress = function (event) {
+        if (event.key === 'Enter') {
+          sendInput(inputField);
+        }
+      };
+      outputBox.appendChild(inputField);
+      inputField.focus();
+    } else if (data.type === 'finished') {
+      if (window.currentTimer) {
+        clearInterval(window.currentTimer);
+        window.currentTimer = null;
+      }
+      outputBox.innerHTML += `<br><br><span class="output-success">=== Compiled in ${executionTime} ===</span>
+<span class="output-success">=== Code Execution Successful ===</span>`;
+    }
+  };
+
+  socket.onerror = function (error) {
+    console.error('WebSocket Error:', error);
+
+    if (window.currentTimer) {
+      clearInterval(window.currentTimer);
+      window.currentTimer = null;
+    }
+
+    document.getElementById('output').innerHTML =
+      '<span class="output-error">Connection error! Please check if the server is running.</span>';
+  };
+
+  socket.onclose = function (event) {
+    if (window.currentTimer) {
+      clearInterval(window.currentTimer);
+      window.currentTimer = null;
+    }
+
+    document.getElementById('output').innerHTML =
+      '<span class="output-warning">Connection closed. Please refresh the page to reconnect.</span>';
+
+    const statusElement = document.querySelector(
+      '.status-item:nth-child(2) span',
+    );
+    if (statusElement) {
+      statusElement.textContent = 'Disconnected';
+      statusElement.style.color = 'var(--error-text)';
+    }
+  };
 
   function showFullEditor() {
     if (window.innerWidth > 768) return;
@@ -295,58 +366,6 @@ async function init() {
   window.addEventListener('resize', () => {
     editor.refresh();
   });
-
-  socket.onmessage = function (event) {
-    let data = JSON.parse(event.data);
-    let outputBox = document.getElementById('output');
-
-    if (data.type === 'compiled') {
-      outputBox.innerHTML =
-        'Compiling...<div class="loading-indicator ml-2"></div>';
-    } else if (data.type === 'output') {
-      outputBox.innerHTML += data.message;
-    } else if (data.type === 'error') {
-      outputBox.innerHTML = `<span class="output-error">${data.message}</span>`;
-    } else if (data.type === 'running') {
-      outputBox.innerHTML = '';
-    } else if (data.type === 'input-request') {
-      let inputField = document.createElement('input');
-      inputField.id = 'userInput';
-      inputField.type = 'text';
-      inputField.className = 'w-full';
-      inputField.onkeypress = function (event) {
-        if (event.key === 'Enter') {
-          sendInput(inputField);
-        }
-      };
-      outputBox.appendChild(inputField);
-      inputField.focus();
-    } else if (data.type === 'finished') {
-      if (window.currentTimer) {
-        clearInterval(window.currentTimer);
-      }
-      outputBox.innerHTML += `<br><br><span class="output-success">=== Compiled in ${executionTime} ===</span>
-<span class="output-success">=== Code Execution Successful ===</span>`;
-    }
-  };
-
-  socket.onerror = function (error) {
-    console.error('WebSocket Error:', error);
-    document.getElementById('output').innerHTML =
-      '<span class="output-error">Connection error! Please check if the server is running.</span>';
-    clearInterval(window.currentTimer);
-  };
-
-  socket.onclose = function (event) {
-    document.getElementById('output').innerHTML =
-      '<span class="output-warning">Connection closed. Please refresh the page to reconnect.</span>';
-
-    document.querySelector('.status-item:nth-child(2) span').textContent =
-      'Disconnected';
-    document.querySelector('.status-item:nth-child(2) span').style.color =
-      'var(--error-text)';
-    clearInterval(window.currentTimer);
-  };
 
   toggleViewBtn.addEventListener('click', () => {
     editorView++;
@@ -620,7 +639,12 @@ async function init() {
   }
 
   async function openShareModel() {
-    modelImg.src = await generateQrCode();
+    const qrCode = await generateQrCode();
+    if (!qrCode) {
+      showToast('Failed to generate QR code');
+      return;
+    }
+    modelImg.src = qrCode;
     modelDiv.className = 'model-div';
     divCloseX.className = 'model-close';
     divCloseX.innerHTML = '&times;';
