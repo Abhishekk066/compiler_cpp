@@ -159,7 +159,7 @@ async function init() {
         clearInterval(window.currentTimer);
         window.currentTimer = null;
       }
-      outputBox.innerHTML += `<br><br><span class="output-success">=== Compiled in ${executionTime} ===</span>\n
+      outputBox.innerHTML += `<br><br><span class="output-success">=== Compiled in ${executionTime} ===</span><br>
 <span class="output-success">=== Code Execution Successful ===</span>`;
     }
   };
