@@ -288,6 +288,7 @@ async function init() {
 
   async function copyShareCode() {
     try {
+      const shareUrl = await generateCode();
       if (!shareUrl) throw new Error('Could not generate URL');
 
       navigator.clipboard
