@@ -15,7 +15,6 @@
     "codemirror": "^5.65.18",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "fs": "^0.0.1-security",
     "node-cache": "^5.1.2",
     "node-fetch": "^3.3.2",
     "qrcode": "^1.5.4",
