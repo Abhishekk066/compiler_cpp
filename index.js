@@ -3,6 +3,7 @@ import cors from 'cors';
 import crypto from 'crypto';
 import EventEmitter from 'events';
 import express from 'express';
+import { existsSync } from 'fs';
 import fs from 'fs/promises';
 import http from 'http';
 import NodeCache from 'node-cache';
@@ -20,8 +21,8 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-const mainDomain = 'http://localhost:10000'; //'https://compilercpp.onrender.com';
-const requestedDomain = 'http://localhost:8000'; //'https://fecpp.onrender.com';
+const mainDomain = 'https://compilercpp.onrender.com';
+const requestedDomain = 'https://fecpp.onrender.com';
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
@@ -161,15 +162,19 @@ app.post('/get-theme', (req, res) => {
   res.json({ message: true, themeMode });
 });
 
-wss.on('connection', (ws) => {
+wss.on('connection', async (ws) => {
   const clientId = crypto.randomUUID();
-  let sourceFile = path.join(__dirname, `code_${clientId}.cpp`);
-  let outputFile = path.join(__dirname, `code_${clientId}.exe`);
+  if (!existsSync('./outputs')) {
+    await fs.mkdir('outputs');
+  }
+  let sourceFile = path.join(__dirname, 'outputs', `code_${clientId}.cpp`);
+  let outputFile = path.join(__dirname, 'outputs', `code_${clientId}.exe`);
   let cppProcess = null;
 
-  let hasCinStatements = false;
+  let totalInputsNeeded = 0;
+  let inputsReceived = 0;
   let executionStartTime = null;
-  let waitingForInput = false;
+  let hasRequestedInput = false;
 
   ws.on('message', async (message) => {
     try {
@@ -187,12 +192,28 @@ wss.on('connection', (ws) => {
         const compile = spawn('g++', [sourceFile, '-o', outputFile]);
         let compileError = '';
 
-        const cinRegex = /cin\s*>>/g;
-        const getlineRegex = /getline\s*\(\s*cin/g;
-        hasCinStatements =
-          cinRegex.test(data.code) || getlineRegex.test(data.code);
+        const cinRegex = /cin\s*>>\s*([^;]+)/g;
+        const cinMatches = [...data.code.matchAll(cinRegex)];
 
-        waitingForInput = false;
+        const cinChildCount = cinMatches.map((match) =>
+          match[1]
+            .split('>>')
+            .map((v) => v.trim())
+            .filter(Boolean),
+        );
+
+        const getlineRegex = /getline\s*\(\s*cin\s*,\s*([^)]+)\s*\)/g;
+        const getlineMatches = [...data.code.matchAll(getlineRegex)];
+
+        const cinInputCount = cinChildCount.reduce(
+          (sum, vars) => sum + vars.length,
+          0,
+        );
+        const getlineInputCount = getlineMatches.length;
+
+        totalInputsNeeded = cinInputCount + getlineInputCount;
+        inputsReceived = 0;
+        hasRequestedInput = false;
 
         compile.stderr.on('data', (error) => {
           compileError += error.toString();
@@ -216,10 +237,15 @@ wss.on('connection', (ws) => {
 
           ws.send(JSON.stringify({ type: 'running', message: 'Running...' }));
 
-          if (hasCinStatements) {
+          if (totalInputsNeeded > 0) {
             setTimeout(() => {
-              if (cppProcess && ws.readyState === ws.OPEN && !waitingForInput) {
-                waitingForInput = true;
+              if (
+                cppProcess &&
+                !hasRequestedInput &&
+                inputsReceived < totalInputsNeeded &&
+                ws.readyState === ws.OPEN
+              ) {
+                hasRequestedInput = true;
                 ws.send(JSON.stringify({ type: 'input-request' }));
               }
             }, 100);
@@ -230,17 +256,9 @@ wss.on('connection', (ws) => {
               JSON.stringify({ type: 'output', message: output.toString() }),
             );
 
-            if (hasCinStatements && cppProcess && !waitingForInput) {
-              setTimeout(() => {
-                if (
-                  cppProcess &&
-                  ws.readyState === ws.OPEN &&
-                  !waitingForInput
-                ) {
-                  waitingForInput = true;
-                  ws.send(JSON.stringify({ type: 'input-request' }));
-                }
-              }, 50);
+            if (inputsReceived < totalInputsNeeded && !hasRequestedInput) {
+              hasRequestedInput = true;
+              ws.send(JSON.stringify({ type: 'input-request' }));
             }
           });
 
@@ -250,9 +268,22 @@ wss.on('connection', (ws) => {
             );
           });
 
+          const runTimeout = setTimeout(() => {
+            if (cppProcess) {
+              cppProcess.kill();
+              cppProcess = null;
+              ws.send(
+                JSON.stringify({
+                  type: 'error',
+                  message: 'Execution Timed Out',
+                }),
+              );
+            }
+          }, 60000);
+
           cppProcess.on('close', (exitCode) => {
+            clearTimeout(runTimeout);
             cppProcess = null;
-            waitingForInput = false;
 
             const executionTime = executionStartTime
               ? ((performance.now() - executionStartTime) / 1000).toFixed(2)
@@ -271,7 +302,22 @@ wss.on('connection', (ws) => {
         });
       } else if (data.type === 'input' && cppProcess) {
         cppProcess.stdin.write(data.input + '\n');
-        waitingForInput = false;
+
+        const values = data.input
+          .trim()
+          .split(/\s+/)
+          .filter((v) => v.length > 0);
+
+        inputsReceived += values.length;
+        hasRequestedInput = false;
+        if (inputsReceived < totalInputsNeeded) {
+          setTimeout(() => {
+            if (cppProcess && ws.readyState === ws.OPEN) {
+              hasRequestedInput = true;
+              ws.send(JSON.stringify({ type: 'input-request' }));
+            }
+          }, 50);
+        }
       }
     } catch (err) {
       console.error('Error:', err);
