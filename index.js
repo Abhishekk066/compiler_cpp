@@ -20,8 +20,8 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-const mainDomain = 'https://compilercpp.onrender.com';
-const requestedDomain = 'https://fecpp.onrender.com';
+const mainDomain = 'http://localhost:10000'; //'https://compilercpp.onrender.com';
+const requestedDomain = 'http://localhost:8000'; //'https://fecpp.onrender.com';
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
@@ -167,6 +167,10 @@ wss.on('connection', (ws) => {
   let outputFile = path.join(__dirname, `code_${clientId}.exe`);
   let cppProcess = null;
 
+  let hasCinStatements = false;
+  let executionStartTime = null;
+  let waitingForInput = false;
+
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
@@ -182,6 +186,13 @@ wss.on('connection', (ws) => {
 
         const compile = spawn('g++', [sourceFile, '-o', outputFile]);
         let compileError = '';
+
+        const cinRegex = /cin\s*>>/g;
+        const getlineRegex = /getline\s*\(\s*cin/g;
+        hasCinStatements =
+          cinRegex.test(data.code) || getlineRegex.test(data.code);
+
+        waitingForInput = false;
 
         compile.stderr.on('data', (error) => {
           compileError += error.toString();
@@ -201,16 +212,35 @@ wss.on('connection', (ws) => {
           );
 
           cppProcess = spawn(outputFile);
+          executionStartTime = performance.now();
 
           ws.send(JSON.stringify({ type: 'running', message: 'Running...' }));
+
+          if (hasCinStatements) {
+            setTimeout(() => {
+              if (cppProcess && ws.readyState === ws.OPEN && !waitingForInput) {
+                waitingForInput = true;
+                ws.send(JSON.stringify({ type: 'input-request' }));
+              }
+            }, 100);
+          }
 
           cppProcess.stdout.on('data', (output) => {
             ws.send(
               JSON.stringify({ type: 'output', message: output.toString() }),
             );
 
-            if (output.toString().includes('Enter')) {
-              ws.send(JSON.stringify({ type: 'input-request' }));
+            if (hasCinStatements && cppProcess && !waitingForInput) {
+              setTimeout(() => {
+                if (
+                  cppProcess &&
+                  ws.readyState === ws.OPEN &&
+                  !waitingForInput
+                ) {
+                  waitingForInput = true;
+                  ws.send(JSON.stringify({ type: 'input-request' }));
+                }
+              }, 50);
             }
           });
 
@@ -220,27 +250,44 @@ wss.on('connection', (ws) => {
             );
           });
 
-          cppProcess.on('close', () => {
-            ws.send(
-              JSON.stringify({
-                type: 'finished',
-                message: 'Execution Finished.',
-              }),
-            );
+          cppProcess.on('close', (exitCode) => {
+            cppProcess = null;
+            waitingForInput = false;
+
+            const executionTime = executionStartTime
+              ? ((performance.now() - executionStartTime) / 1000).toFixed(2)
+              : '0.00';
+
+            if (exitCode !== null && ws.readyState === ws.OPEN) {
+              ws.send(
+                JSON.stringify({
+                  type: 'finished',
+                  timer: executionTime,
+                  message: 'Execution Finished.',
+                }),
+              );
+            }
           });
         });
       } else if (data.type === 'input' && cppProcess) {
         cppProcess.stdin.write(data.input + '\n');
+        waitingForInput = false;
       }
     } catch (err) {
-      ws.send(
-        JSON.stringify({ type: 'error', message: 'Internal Server Error' }),
-      );
+      console.error('Error:', err);
+      if (ws.readyState === ws.OPEN) {
+        ws.send(
+          JSON.stringify({ type: 'error', message: 'Internal Server Error' }),
+        );
+      }
     }
   });
 
   ws.on('close', async () => {
-    if (cppProcess) cppProcess.kill();
+    if (cppProcess) {
+      cppProcess.kill();
+      cppProcess = null;
+    }
     await deleteFileIfExists(sourceFile);
     await deleteFileIfExists(outputFile);
   });

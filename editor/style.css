@@ -265,6 +265,7 @@ nav {
   transition: none !important;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   caret-color: var(--output-text);
+  white-space: pre-wrap;
 }
 
 .editor-container {
@@ -844,7 +845,6 @@ label {
 }
 
 @media (max-width: 425px) {
-
   .editor-container,
   .output-container {
     width: 100% !important;
@@ -940,7 +940,6 @@ label {
 }
 
 @media (max-width: 375px) {
-
   .editor-container,
   .output-container {
     width: 100% !important;

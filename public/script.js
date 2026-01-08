@@ -1,5 +1,5 @@
 async function init() {
-  let socket = new WebSocket(`wss://${window.location.host}`);
+  let socket = new WebSocket(`ws://${window.location.host}`);
   const editorContainer = document.getElementById('editorContainer');
   const outputContainer = document.getElementById('outputContainer');
   const toggleViewBtn = document.getElementById('toggle-view');
@@ -60,29 +60,12 @@ async function init() {
     ).innerHTML += `<span class="output-info">${input}</span><br>`;
   }
 
-  let executionTime = 0;
-  window.currentTimer = null;
-
   function runCode() {
     document.getElementById('output').innerHTML =
       'Compiling...<div class="loading-indicator ml-2"></div>';
     document.getElementById('execution-time').textContent = '0.00s';
 
-    if (window.currentTimer) {
-      clearInterval(window.currentTimer);
-      window.currentTimer = null;
-    }
-
-    const startTime = performance.now();
     socket.send(JSON.stringify({ type: 'code', code: editor.getValue() }));
-
-    const timer = setInterval(() => {
-      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-      document.getElementById('execution-time').textContent = elapsed + 's';
-      executionTime = elapsed + 's';
-    }, 100);
-
-    window.currentTimer = timer;
 
     if (window.innerWidth <= 768) {
       showOutput();
@@ -110,10 +93,6 @@ async function init() {
     } else if (data.type === 'output') {
       outputBox.innerHTML += data.message;
     } else if (data.type === 'error') {
-      if (window.currentTimer) {
-        clearInterval(window.currentTimer);
-        window.currentTimer = null;
-      }
       outputBox.innerHTML = `<span class="output-error">${data.message}</span>`;
     } else if (data.type === 'running') {
       outputBox.innerHTML = '';
@@ -130,11 +109,8 @@ async function init() {
       outputBox.appendChild(inputField);
       inputField.focus();
     } else if (data.type === 'finished') {
-      if (window.currentTimer) {
-        clearInterval(window.currentTimer);
-        window.currentTimer = null;
-      }
-      outputBox.innerHTML += `<br><br><span class="output-success">=== Compiled in ${executionTime} ===</span><br>
+      document.getElementById('execution-time').textContent = data.timer + 's';
+      outputBox.innerHTML += `<br><br><span class="output-success">=== Compiled in ${data.timer} ===</span>
 <span class="output-success">=== Code Execution Successful ===</span>`;
     }
   };
@@ -142,21 +118,11 @@ async function init() {
   socket.onerror = function (error) {
     console.error('WebSocket Error:', error);
 
-    if (window.currentTimer) {
-      clearInterval(window.currentTimer);
-      window.currentTimer = null;
-    }
-
     document.getElementById('output').innerHTML =
       '<span class="output-error">Connection error! Please check if the server is running.</span>';
   };
 
   socket.onclose = function (event) {
-    if (window.currentTimer) {
-      clearInterval(window.currentTimer);
-      window.currentTimer = null;
-    }
-
     document.getElementById('output').innerHTML =
       '<span class="output-warning">Connection closed. Please refresh the page to reconnect.</span>';
 
