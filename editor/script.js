@@ -1,5 +1,6 @@
 async function init() {
-  let socket = new WebSocket(`wss://${window.location.host}`);
+  const webSocketType = window.location.protocol === "https:" ? `wss://${window.location.host}` : `ws://${window.location.host}`;
+  let socket = new WebSocket(webSocketType);
   const editorContainer = document.getElementById('editorContainer');
   const outputContainer = document.getElementById('outputContainer');
   const toggleViewBtn = document.getElementById('toggle-view');
